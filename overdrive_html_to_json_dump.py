@@ -6,10 +6,7 @@ import re
 
 
 def loan_books_from_page(subdomain, page):
-    # url = f'https://{subdomain}.overdrive.com/search?sortBy=newlyadded&showOnlyAvailable=true&format=ebook-epub-adobe&language=en&page={page}'
     url = f'https://{subdomain}.overdrive.com/search?page={page}&sortBy=newlyadded&format=ebook-kindle'
-    # url = f'https://{subdomain}.overdrive.com/search?format=ebook-epub-adobe&sortBy=mostpopular-site&showOnlyAvailable=true&language=en&page={page}'
-    num_loaned = 0
     print(f'browsing page {url}')
     try:
         r = sess.get(url, timeout=30, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'})
@@ -21,8 +18,6 @@ def loan_books_from_page(subdomain, page):
         r = sess.get(url, timeout=30)
         soup = BeautifulSoup(r.text, 'html.parser')
     sleep(1)
-
-    soup.find_all('div', class_="InfoPanel")
     for x in soup.find_all('script'):
         try:
             books_meta_json = json.loads(re.search('window.OverDrive.mediaItems = (.+)', str(x)).group(1).strip('; '))
