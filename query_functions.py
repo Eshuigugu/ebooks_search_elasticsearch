@@ -5,7 +5,7 @@ from time import sleep
 import re
 
 
-host_conn = 'http://ip:port'
+host_conn = 'http://elasticsearch_ip:port'
 sess = requests.Session()
 
 # can query title, authors, work_id
@@ -87,4 +87,12 @@ def titles_similar(title, title2):
     elif jellyfish.jaro_winkler_similarity(title.lower(), title2.lower()) > 0.92 and len(title) > 30:
         return True
     return False
+
+
+if __name__ == '__main__':
+    title, author, work_id = 'The Great Gatsby', 'Scott Fitzgerald', '245494'
+
+    hits = query_elasticsearch(title=title, authors=author, work_id=work_id)
+    print(len(hits))
+    print(json.dumps(hits[:5], indent=2))
 
