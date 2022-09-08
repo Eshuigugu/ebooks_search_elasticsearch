@@ -5,8 +5,7 @@ from time import sleep
 import re
 
 
-# host_conn = 'http://192.168.0.201:9200'
-host_conn = 'http://192.168.0.201:9200'
+host_conn = 'http://ip:port'
 sess = requests.Session()
 
 # can query title, authors, work_id
@@ -88,17 +87,4 @@ def titles_similar(title, title2):
     elif jellyfish.jaro_winkler_similarity(title.lower(), title2.lower()) > 0.92 and len(title) > 30:
         return True
     return False
-
-
-def titles_similar2(title, title2):
-    get_title_varients = lambda x: {re.sub(' *(?:[\-:].*|\(.*\))* *$', '', x), re.sub(' *(?:\(.*\))* *$', '', x), x}
-    return get_title_varients(title.lower()) & get_title_varients(title2.lower())
-
-
-if __name__ == '__main__':
-    title, author = 'A Palestine Affair', 'Jonathan Wilson'
-
-    hits = query_elasticsearch(title=title, authors=author)
-    print(len(hits))
-    print(json.dumps(hits[:5], indent=2))
 
