@@ -1,0 +1,7 @@
+appdirs==1.4.4
+beautifulsoup4==4.11.1
+jellyfish==0.8.2
+mysql_connector_repackaged==0.3.1
+requests==2.22.0
+requests_toolbelt==0.9.1
+tqdm==4.61.1
