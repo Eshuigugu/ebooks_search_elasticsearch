@@ -13,7 +13,7 @@ from search_calishot import search_calishot
 # this script does create some files under this directory
 from appdirs import user_data_dir
 appname = "MAM_search_elasticsearch"
-appauthor = "FastSquash"
+appauthor = "Eshuigugu"
 data_dir = user_data_dir(appname, appauthor)
 
 if not os.path.isdir(data_dir):
