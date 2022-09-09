@@ -6,21 +6,25 @@ from bs4 import BeautifulSoup
 import os
 import pickle
 import re
-from query_functions import reduce_title, reduce_author_str, get_work_id, query_elasticsearch, titles_similar
+from query_functions import reduce_title, reduce_author_str, query_elasticsearch, titles_similar
 import jellyfish
 from search_calishot import search_calishot
 
 # this script does create some files under this directory
-BASEDIR = os.path.expanduser('~/Documents/MAM_search_elasticsearch')
-if not os.path.isdir(BASEDIR):
-    os.makedirs(BASEDIR)
-sess_filepath = os.path.join(BASEDIR, 'session.pkl')
+from appdirs import user_data_dir
+appname = "MAM_search_elasticsearch"
+appauthor = "FastSquash"
+data_dir = user_data_dir(appname, appauthor)
+
+if not os.path.isdir(data_dir):
+    os.makedirs(data_dir)
+sess_filepath = os.path.join(data_dir, 'session.pkl')
 
 
 def search_mam(title_author):
     query = f'@(title,author) {title_author}'
     query = re.sub('[/\\\\~\-]', ' ', query)
-    start_num=0
+    start_num = 0
     json_dict = {
         "tor": {
             "main_cat": ["14", "15"],  # limit query to ebooks and music
@@ -30,7 +34,8 @@ def search_mam(title_author):
     }
     # don't need go out of the way for authentication
     # if get_mam_requests() was called before this function because sess/session has cookies
-    try:response = sess.post('https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php', json=json_dict, timeout=20)
+    try:
+        response = sess.post('https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php', json=json_dict, timeout=20)
     except:
         time.sleep(10)
         response = sess.post('https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php', json=json_dict, timeout=20)
@@ -99,11 +104,13 @@ def reduce_author_str(author):
     return ' '.join([x for x in author.split(' ') if len(x) > 1])
 
 
+def authors_to_set(authors):
+    return {x.lower() for x in re.split('[ .,&\\\\;]', (' '.join(authors) if type(authors) == list else authors)) if len(x) > 1}
+
+
 def search_elasticsearch(title, authors):
     query_str = f'{reduce_title(title)} {reduce_author_str(authors[0])}'
-    work_ids = get_work_id(query_str)
-
-    hits = query_elasticsearch(title=title, authors=' '.join(authors), work_id=' '.join(work_ids))
+    hits = query_elasticsearch(title=title, authors=' '.join(authors))
     if not hits:
         return []
     hits = [x['_source'] for x in hits]
@@ -115,17 +122,15 @@ def search_elasticsearch(title, authors):
             x['title'] = str(x['title'])
     hits += search_mam(query_str)
     hits = [result for result in hits if titles_similar(title, result['title']) and
-                      set(' '.join(authors).split(' ')) & \
-                      set((' '.join(result['authors']) if type(result['authors']) == list
-                           else result['authors']).split(' '))]
+            authors_to_set(authors) & authors_to_set(result['authors'])]
     # ensure each result is unique
-    hits = list({x['url']:x for x in hits}.values())
+    hits = list({x['url']: x for x in hits}.values())
     # sort results from most > least similar
     hits.sort(key=lambda x: jellyfish.damerau_levenshtein_distance(title, x['title']))
     return hits
 
 
-mam_blacklist_filepath = os.path.join(BASEDIR, 'blacklisted_ids.txt')
+mam_blacklist_filepath = os.path.join(data_dir, 'blacklisted_ids.txt')
 if os.path.exists(mam_blacklist_filepath):
     with open(mam_blacklist_filepath, 'r') as f:
         blacklist = set([int(x.strip()) for x in f.readlines()])
@@ -136,7 +141,6 @@ if os.path.exists(sess_filepath):
     sess = pickle.load(open(sess_filepath, 'rb'))
 else:
     sess = requests.Session()
-
 
 all_hits_sources = []
 if __name__ == '__main__':
@@ -152,16 +156,17 @@ if __name__ == '__main__':
         title = book['title']
         authors = book['authors']
         search_results = search_elasticsearch(title, authors)
+        result_sources = [x['source_name'] for x in search_results]
+        all_hits_sources.append(result_sources)
         if search_results:
-            result_sources = [x['source_name'] for x in search_results]
-            all_hits_sources += result_sources
-            if 'myanonamouse' in result_sources:
-                print(f'book on MAM {book["url"]}', [x['url'] for x in search_results if
-                                                     'myanonamouse' == x['source_name']][:5])
-                print()
-                continue
             print(book['title'])
             print(book['url'], f'got {len(search_results)} hits')
+            if 'myanonamouse' in result_sources:
+                # seperate into MAM and non MAM results
+                mam_results = [x for x in search_results if 'myanonamouse' == x['source_name']]
+                search_results = [x for x in search_results if 'myanonamouse' != x['source_name']]
+                print(f'book is on MAM')
+                print(mam_results[0]['title'], mam_results[0]['url'])
             # only show max of 5 results
             if len(search_results) > 5:
                 print(f'showing first 5 results')
@@ -169,3 +174,4 @@ if __name__ == '__main__':
                 # print title up to 100 chars, and book url
                 print(result['title'][:100], result['url'])
             print()
+
