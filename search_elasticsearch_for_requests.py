@@ -33,7 +33,7 @@ def search_mam(title_author):
         },
     }
     # don't need go out of the way for authentication
-    # if get_mam_requests() was called before this function because sess/session has cookies
+    # if get_mam_requests() was called before this function because session (AKA sess) has cookies
     try:
         response = sess.post('https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php', json=json_dict, timeout=20)
     except:
@@ -62,10 +62,8 @@ def get_mam_requests(limit=5000):
     while keepGoing:
         time.sleep(1)
         url = 'https://www.myanonamouse.net/tor/json/loadRequests.php'
-        # fill in mam_id
-        headers = {
-            'cookie': 'mam_id=',
-        }
+        # fill in mam_id and uncomment for first run or when auth fails
+        # sess.headers['cookie'] = 'mam_id='
 
         params = {
             'tor[text]': '',
@@ -78,8 +76,9 @@ def get_mam_requests(limit=5000):
             'tor[sortType]': 'dateD'
         }
         data = MultipartEncoder(fields=params)
-        headers['Content-type'] = data.content_type
-        r = sess.post(url, headers=headers, data=data)
+        sess.headers['Content-type'] = data.content_type
+        # headers['Content-type'] = data.content_type
+        r = sess.post(url, data=data)
         req_books += r.json()['data']
         total_items = r.json()['found']
         start_idx += 100
