@@ -25,7 +25,7 @@ push_to_elasticsearch.py puts all the books onto elasticsearch
 main.py searches for public domain books requested on myanonamouse using elasticsearch.  
 Fill in mam_id to use it for that purpose
 
-On my test run it took 3 seconds for each search, and it found results for 18% of the requested books.
+On my test run it took 3 seconds for each requested book and it got hits for 18% of the requested books.
 
 
 Required python packages:  
