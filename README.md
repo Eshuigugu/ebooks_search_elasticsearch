@@ -22,8 +22,8 @@ update the variable subdomains to the list of overdrive subdomains you use
 push_to_elasticsearch.py puts all the books onto elasticsearch
 
 
-main.py searches for public domain books requested on myanonamouse using elasticsearch
-fill in mam_id to use it for that purpose
+main.py searches for public domain books requested on myanonamouse using elasticsearch.
+Fill in mam_id to use it for that purpose
 
 On my test run it took 3 seconds for each search, and it found results for 18% of the requested books.
 
