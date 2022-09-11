@@ -116,7 +116,7 @@ def split_str_to_set(authors):
 def search_elasticsearch(title, authors):
     query_str = f'{reduce_title(title)} {reduce_author_str(authors[0])}'
     hits = query_elasticsearch(title=title, authors=' '.join(authors))
-    hits += search_calishot(query_str)
+    hits += search_calishot(query_str) + search_openlibrary(query_str)
     if hits:
         # filter results
         hits = [x for x in hits if 'authors' in x]
