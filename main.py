@@ -9,6 +9,7 @@ import re
 from query_functions import reduce_title, reduce_author_str, query_elasticsearch, titles_similar, get_work_id
 import jellyfish
 from search_calishot import search_calishot
+from search_openlibrary import search_openlibrary
 from appdirs import user_data_dir
 
 # this script does create some files under this directory
