@@ -203,19 +203,3 @@ else:
 all_hits_sources = []
 if __name__ == '__main__':
     main()
-# if it was found in many sources including $source_name then add it to found_include
-found_include = {}
-# if it was found on only one source, which is $source_name, then add it to found_unique
-found_unique = {}
-for book_sources in all_hits_sources:
-    book_sources = set(book_sources)
-    if len(book_sources) == 1:
-        for source in book_sources:
-            if source not in found_unique:
-                found_unique[source] = 0
-            found_unique[source] += 1
-    for source in book_sources:
-        if source not in found_include:
-            found_include[source] = 0
-        found_include[source] += 1
-
