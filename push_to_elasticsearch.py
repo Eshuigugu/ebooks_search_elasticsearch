@@ -87,7 +87,7 @@ def json_file_to_elasticsearch(filename, query_goodreads=True, num_to_skip=0):
 
 
 if __name__ == '__main__':
-    json_file_to_elasticsearch('myanonamouse.json', overwrite=True)
+    json_file_to_elasticsearch('myanonamouse.json')
     import overdrive_html_to_json_dump
     for filename in overdrive_html_to_json_dump.filenames:
         json_file_to_elasticsearch(filename)
