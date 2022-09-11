@@ -7,6 +7,7 @@ def parse_cursor(cursor, columns):
     for x in cursor:
         yield {k: v if type(v) != bytes else json.loads(v.decode()) for k, v in zip(columns, x)}
 
+
 def main():
     sql_connection = mysql.connector.connect(host='', user='', passwd='', database='')
     cursor = sql_connection.cursor()

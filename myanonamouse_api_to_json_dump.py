@@ -6,7 +6,7 @@ from datetime import datetime
 
 def main():
     my_cookies = {
-        'mam_id': 'mam_id goes here'
+        'mam_id': ''
     }
     json_dict = {
         "tor": {
@@ -34,8 +34,15 @@ def main():
 
         with open('myanonamouse.json', 'a') as f:
             for row in resp_dict['data']:
+                # sometimes type(title) == int
+                row['title'] = str(row['title'])
                 row = {rename_cols[k] if k in rename_cols else k: v for k, v in row.items()}
-                row['authors'] = list(json.loads(row['author_info']).values()) if row['author_info'] else ''
+                try:
+                    # sometimes author_info isn't proper JSON
+                    row['authors'] = list(json.loads(row['author_info']).values()) if row['author_info'] else ''
+                except:
+                    print(row['author_info'])
+                    row['authors'] = ''
                 row['url'] = f"https://www.myanonamouse.net/t/{row['id']}"
                 # deal with ISBNs that are ASINs
                 if type(row['ISBN']) != str:
@@ -47,6 +54,7 @@ def main():
                 row = {k:v for k,v in row.items() if k in wanted_columns and v}
                 f.write( json.dumps(row) + '\n')
         len_data = len(resp_dict['data'])
+        # reassure developer that things are happening
         print(datetime.fromisoformat(resp_dict['data'][-1]['added']).isoformat(), json_dict['tor']['startNumber'])
 
 

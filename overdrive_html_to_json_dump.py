@@ -9,7 +9,7 @@ def loan_books_from_page(subdomain, page):
     url = f'https://{subdomain}.overdrive.com/search?page={page}&sortBy=newlyadded&format=ebook-kindle'
     print(f'browsing page {url}')
     try:
-        r = sess.get(url, timeout=30, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'})
+        r = sess.get(url, timeout=30)
         soup = BeautifulSoup(r.text, 'html.parser')
         page_title = soup.find('title').text
     except:page_title='error'

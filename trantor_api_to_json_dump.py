@@ -23,10 +23,9 @@ def main():
     keepGoing = True
     while keepGoing:
         url = f'http://kx5thpx2olielkihfyo4jgjqfb7zx7wxr3sd4xzt26ochei4m6f7tayd.onion/search/?q=&p={page}&num={step_size}&fmt=json'
-        # r = session.get(url)
-        # sleep(1)
         print(url)
         r = None
+        # GET requests sent to trantor often fail
         for i in range(8):
             try:
                 if i:

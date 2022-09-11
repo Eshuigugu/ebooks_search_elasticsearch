@@ -17,10 +17,14 @@ def search_calishot(query):
     }
 
     time.sleep(1)
-    r = sess.get(calishot_url, params=request_params, timeout=60)
+    try:
+        r = sess.get(calishot_url, params=request_params, timeout=60)
+    except requests.ConnectionError:
+        # fail silently
+        return []
     columns = r.json()['columns']
 
-    # restructure the json results
+    # restructure the JSON results
     results = [{k: json.loads(v) if v and k in json_columns else v for k, v in
                 zip(columns, x)} for x in r.json()['rows']]
 
