@@ -13,7 +13,7 @@ fill in mam_id
 for trantor_api_to_json_dump.py  
 point it to a TOR proxy. takes a long time to run from start to end
 
-ebook_hunter_html_to_json_dump.py should work as is. also takes a long time to run
+ebook_hunter_html_to_json_dump.py should work as is. takes a long time to run
 
 for overdrive_html_to_json_dump.py  
 update the variable subdomains to the list of overdrive subdomains you use
