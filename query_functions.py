@@ -5,7 +5,7 @@ from time import sleep
 import re
 
 
-HOST_CONN = 'http://192.168.0.201:9200'
+HOST_CONN = 'http://HOST:PORT'
 GOODREADS_URL = 'https://www.goodreads.com/book/auto_complete'
 sess = requests.Session()
 
