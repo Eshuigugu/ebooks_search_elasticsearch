@@ -10,6 +10,15 @@ GOODREADS_URL = 'https://www.goodreads.com/book/auto_complete'
 sess = requests.Session()
 
 
+abbreviate_numbers = {'first': '1st', 'second': '2nd', 'third': '3rd', 'fourth': '4th', 'fifth': '5th', 'sixth': '6th',
+                     'seventh': '7th', 'eighth': '8th', 'ninth': '9th', 'tenth': '10th', 'eleventh': '11th',
+                     'twelfth': '12th', 'thirteenth': '13th', 'fourteenth': '14th', 'fifteenth': '15th',
+                     'sixteenth': '16th', 'seventeenth': '17th', 'eighteenth': '18th', 'nineteenth': '19th',
+                     'twentieth': '20th', 'twenty-first': '21st', 'twenty-second': '22nd', 'twenty-third': '23rd',
+                     'twenty-fourth': '24th', 'twenty-fifth': '25th',
+                      'II': '2nd', 'III': '3rd', 'IV': '4th', 'VI': '6th', 'VII': '7th', 'VIII': '8th', 'IX': '9th'}
+
+
 # can query title, authors, work_id
 def query_elasticsearch(**kwargs):
     query_json = {
@@ -60,10 +69,27 @@ def remove_title_junk(title):
     title = re.sub('(\(.*\)|\[.*\])* *$', '', str(title))
     # remove junk strings and subtitles like "^the" or ": a novel" at start and end of string
     title = re.sub('(^(a |the) *|[-: ](a novel|and other stories|a novella'
-                   '|a memoir|a thriller|stories|poems|an anthology).*$)', '', title, flags=re.IGNORECASE)
+                   '|a memoir|a thriller|stories|poems|an anthology) *$)', '', title, flags=re.IGNORECASE)
     if title.lower().startswith('the '):
         title = title[4:]
     return title
+
+
+def check_title_numbers_match(title, title2):
+    for abbreviation in list(abbreviate_numbers)[::-1]:
+        regex_match = re.search(f'(?<![\w-]){abbreviation}(?![\w-])', title, flags=re.IGNORECASE)
+        if regex_match:
+             title = title[:regex_match.span()[0]] + abbreviate_numbers[abbreviation] + title[regex_match.span()[1]:]
+
+        regex_match = re.search(f'(?<![\w-]){abbreviation}(?![\w-])', title2, flags=re.IGNORECASE)
+        if regex_match:
+             title2 = title2[:regex_match.span()[0]] + abbreviate_numbers[abbreviation] + title2[regex_match.span()[1]:]
+
+    # if you're seaching for something with numbers, and result has numbers, they should match except for leading 0s
+    if re.search('(?<!^)\d+', title) and re.search('(?<!^)\d+', title2):
+        rm_regex = '[^0-9]|(?<!\d)0+'
+        return re.sub(rm_regex, '', title) == re.sub(rm_regex, '', title2)
+    return True
 
 
 def titles_similar(title, title2):
@@ -74,12 +100,6 @@ def titles_similar(title, title2):
     if not (title and title2):
         return title == title2
 
-    # if you're seaching for something with numbers they should match except for leading 0s
-    if re.search('(?<!^)\d+', title) or re.search('(?<!^)\d+', title2):
-        rm_regex = '[^0-9]|(?<!\d)0'
-        if re.sub(rm_regex,'', title) != re.sub(rm_regex, '', title2):
-            return False
-
     if len(title) < len(title2):  # sometimes it's title: subtitle or subtitle: title
         if title in {x.strip() for x in re.split(r'[:\-]', title2)}:
             return True
@@ -87,6 +107,8 @@ def titles_similar(title, title2):
     # if it's a long title and both titles share all the same words
     if title.count(' ') >= 4 and set(title.lower().split(' ')) == set(title2.lower().split(' ')):
         return True
+    if not check_title_numbers_match(title, title2):
+        return False
 
     if title == title2:
         return True
@@ -106,4 +128,3 @@ if __name__ == '__main__':
     hits = query_elasticsearch(title=title, authors=author, work_id=work_id)
     print(len(hits))
     print(json.dumps(hits[:5], indent=2))
-
