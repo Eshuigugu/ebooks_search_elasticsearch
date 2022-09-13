@@ -6,7 +6,8 @@ from bs4 import BeautifulSoup
 import os
 import pickle
 import re
-from query_functions import reduce_title, reduce_author_str, query_elasticsearch, titles_similar, get_work_id
+from query_functions import reduce_title, reduce_author_str, query_elasticsearch, titles_similar, get_work_id, \
+    check_title_numbers_match
 import jellyfish
 from search_calishot import search_calishot
 from search_openlibrary import search_openlibrary
@@ -110,8 +111,8 @@ def reduce_author_str(author):
     return ' '.join([x for x in author.split(' ') if len(x) > 1])
 
 
-def split_str_to_set(authors):
-    return {x.lower() for x in re.split('[ .,&\\\\;]', (' '.join(authors) if type(authors) == list else authors)) if len(x) > 1}
+def split_str_to_set(strings):
+    return {x.lower() for x in re.split('[ .,&\\\\;)(]', (' '.join(strings) if type(strings) == list else strings)) if len(x) > 1}
 
 
 def search_elasticsearch(title, authors):
@@ -134,7 +135,9 @@ def search_elasticsearch(title, authors):
         # filter results
         hits = [result for result in hits if
                 len(split_str_to_set(title) & split_str_to_set(result['title'])) >=
-                min(len(split_str_to_set(title)), len(split_str_to_set(result['title']))) * 0.75]
+                min(len(split_str_to_set(title)), len(split_str_to_set(result['title']))) * 0.8 and
+                check_title_numbers_match(title, result['title'])
+                ]
         if not hits:
             return []
         print(f'got hits from work id')
