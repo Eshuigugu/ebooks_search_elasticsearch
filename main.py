@@ -29,15 +29,20 @@ def indented_print(*argv, indent=0):
 
 
 def search_mam(title_author):
-    query = f'@(title,author) "{title_author}"/0.75'
-    query = re.sub('[/\\\\~\-]', ' ', query)
+    query = re.sub('[/\\\\~\-]', ' ', title_author)
+    query = f'@(title,author) "{query}"/0.75'
     start_num = 0
     json_dict = {
         "tor": {
             "main_cat": ["14", "15"],  # limit query to ebooks and music
             "startNumber": str(start_num),
             "text": query,
+            "srchIn": {
+                "title": "true",
+            }
         },
+        "dlLink": "true",
+        "thumbnail": "true",
     }
     # don't need go out of the way for authentication if
     # get_mam_requests() was called before this function because session (AKA sess) has the appropriate cookies
@@ -115,7 +120,7 @@ def split_str_to_set(strings):
     return {x.lower() for x in re.split('[ .,&\\\\;)(]', (' '.join(strings) if type(strings) == list else strings)) if len(x) > 1}
 
 
-def search_elasticsearch(title, authors):
+def search_elasticsearch(title, authors, work_id=None):
     query_str = f'{reduce_title(title)} {reduce_author_str(authors[0]) if authors else ""}'
     hits = query_elasticsearch(title=title, authors=' '.join(authors))
     hits += search_calishot(query_str) + search_openlibrary(query_str)
@@ -201,6 +206,10 @@ else:
 
 if os.path.exists(sess_filepath):
     sess = pickle.load(open(sess_filepath, 'rb'))
+    # only take the cookies
+    cookies = sess.cookies
+    sess = requests.Session()
+    sess.cookies = cookies
 else:
     sess = requests.Session()
 
