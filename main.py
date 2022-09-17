@@ -28,39 +28,43 @@ def indented_print(*argv, indent=0):
     print(' ' * indent + ' '.join(argv))
 
 
-def search_mam(title_author):
-    query = re.sub('[/\\\\~\-]', ' ', title_author)
-    query = f'@(title,author) "{query}"/0.75'
-    start_num = 0
-    json_dict = {
-        "tor": {
-            "main_cat": ["14", "15"],  # limit query to ebooks and music
-            "startNumber": str(start_num),
-            "text": query,
-            "srchIn": {
-                "title": "true",
-            }
-        },
-    }
-    # don't need go out of the way for authentication if
-    # get_mam_requests() was called before this function because session (AKA sess) has the appropriate cookies
-    try:
-        response = sess.post('https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php', json=json_dict, timeout=20)
-    except:
-        time.sleep(10)
-        response = sess.post('https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php', json=json_dict, timeout=20)
-    resp_dict = response.json()
-    if 'data' not in resp_dict:
-        return []
-    for row in resp_dict['data']:
-        try:
-            row['authors'] = list(json.loads(row['author_info']).values()) if row['author_info'] else ''
-        except:
-            row['authors'] = ''
-        row['url'] = f"https://www.myanonamouse.net/t/{row['id']}"
-        row['source_name'] = 'myanonamouse'
-        row['title'] = str(row['title'])
-    return resp_dict['data']
+def search_elasticsearch(title, authors):
+    query_str = f'{reduce_title(title)} {reduce_author_str(authors[0]) if authors else ""}'
+    hits = query_elasticsearch(title=title, authors=' '.join(authors))
+    hits += search_calishot(query_str) + search_openlibrary(query_str)
+    if hits:
+        # filter results
+        hits = [x for x in hits if 'authors' in x]
+        for x in hits:
+            if type(x['title']) != str:
+                x['title'] = str(x['title'])
+        hits = [result for result in hits if titles_similar(title, result['title']) and
+                ((split_str_to_set(authors) & split_str_to_set(result['authors'])) if authors else True)]
+
+    # if there's no hits try a lax search by work ID
+    if not hits:
+        # search by work id
+        work_ids = get_work_id(query_str)
+        hits = query_elasticsearch(work_id=' '.join(work_ids))
+        # filter results
+        hits = [result for result in hits if
+                len(split_str_to_set(title) & split_str_to_set(result['title'])) >=
+                min(len(split_str_to_set(title)), len(split_str_to_set(result['title']))) * 0.8 and
+                check_title_numbers_match(title, result['title'])
+                ]
+        if not hits:
+            return []
+        print(f'got hits from work id')
+    if hits:
+        # check MAM API to alert user for possible dupes
+        mam_hits = search_mam(query_str)
+        hits += [result for result in mam_hits if titles_similar(title, result['title']) and
+                 ((split_str_to_set(authors) & split_str_to_set(result['authors'])) if authors else True)]
+    # ensure each result is unique
+    hits = list({x['url']: x for x in hits}.values())
+    # sort results from most > least similar
+    hits.sort(key=lambda x: jellyfish.damerau_levenshtein_distance(title, x['title']))
+    return hits
 
 
 def get_mam_requests(limit=5000):
