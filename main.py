@@ -41,8 +41,6 @@ def search_mam(title_author):
                 "title": "true",
             }
         },
-        "dlLink": "true",
-        "thumbnail": "true",
     }
     # don't need go out of the way for authentication if
     # get_mam_requests() was called before this function because session (AKA sess) has the appropriate cookies
