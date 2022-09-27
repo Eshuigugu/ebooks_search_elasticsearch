@@ -95,4 +95,5 @@ if __name__ == '__main__':
     json_file_to_elasticsearch('libgen_nonfiction.json')
     json_file_to_elasticsearch('ebookhunter.json')
     json_file_to_elasticsearch('trantor.json')
+    json_file_to_elasticsearch('zlib.json')
 
