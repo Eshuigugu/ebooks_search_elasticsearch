@@ -11,15 +11,15 @@ def parse_cursor(cursor, columns):
 def main():
     sql_connection = mysql.connector.connect(host='', user='', passwd='', database='')
     cursor = sql_connection.cursor()
-
-    rename_cols = {'author': 'authors'}
-    columns = ['zlibrary_id', 'title', 'author']
-    cursor.execute(f'select {",".join(columns)} from books')
-    with open('zlib.json', 'a') as f:
+    
+    columns = ['books.title', 'books.author', 'isbn.isbn', 'books.md5_reported']
+    rename_cols = {'books.author': 'authors', 'books.title': 'title', 'books.zlibrary_id': 'zlibrary_id', 'isbn.isbn': 'ISBN', 'books.md5_reported': 'md5_reported'}
+    cursor.execute(f'select {",".join(columns)} from books LEFT JOIN isbn ON books.zlibrary_id=isbn.zlibrary_id group by books.zlibrary_id')
+    with open('zlib.json', 'w') as f:
         for row in parse_cursor(cursor, columns):
-            row['url'] = f'https://b-ok.cc/book/{row["zlibrary_id"]}'
-            del row["zlibrary_id"]
             row = {rename_cols[k] if k in rename_cols else k: v for k, v in row.items()}
+            row['url'] = f'https://b-ok.cc/s/?q={row["md5_reported"]}'
+            del row["md5_reported"]
             row['authors'] = row['authors'].split(', ')
             f.write(json.dumps(row) + '\n')
 
