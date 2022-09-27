@@ -20,6 +20,9 @@ takes a long time to run
 for overdrive_html_to_json_dump.py  
 update the variable subdomains to the list of overdrive subdomains you use
 
+for zlib_sql_to_json_dump.py 
+get zlib metadata sql dump from http://2urmf2mk2dhmz4km522u4yfy2ynbzkbejf2cvmpcbzhpffvcuksrz6ad.onion/zlib-downloads.html
+otherwise similar to the libgen_*_sql_to_json_dump.py scripts.
 
 push_to_elasticsearch.py puts all the books onto elasticsearch
 
