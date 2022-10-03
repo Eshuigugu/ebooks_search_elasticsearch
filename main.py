@@ -12,6 +12,8 @@ import jellyfish
 from search_calishot import search_calishot
 from search_openlibrary import search_openlibrary
 from appdirs import user_data_dir
+from search_overdrive import search_overdrive
+
 
 # this script does create some files under this directory
 appname = "MAM_search_elasticsearch"
@@ -28,10 +30,17 @@ def indented_print(*argv, indent=0):
     print(' ' * indent + ' '.join(argv))
 
 
-def search_elasticsearch(title, authors):
+def search_elasticsearch(title, authors, try_calishot=True, try_openlibrary=True, try_overdrive=True):
+    if type(authors) == str:
+        authors = [authors] if authors else ''
     query_str = f'{reduce_title(title)} {reduce_author_str(authors[0]) if authors else ""}'
     hits = query_elasticsearch(title=title, authors=' '.join(authors))
-    hits += search_calishot(query_str) + search_openlibrary(query_str)
+    if try_openlibrary:
+        hits += search_openlibrary(query_str)
+    if try_calishot:
+        hits += search_calishot(query_str)
+    if try_overdrive:
+        hits += search_overdrive(title, authors)
     if hits:
         # filter results
         hits = [x for x in hits if 'authors' in x]
