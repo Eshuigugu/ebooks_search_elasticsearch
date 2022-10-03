@@ -53,7 +53,7 @@ def valid_isbn(isbn):
 
 
 # querying goodreads so we can search by work_id doesn't help since we're searching and filtering by title
-def json_file_to_elasticsearch(filename, query_goodreads=True, num_to_skip=0):
+def json_file_to_elasticsearch(filename, query_goodreads=False, num_to_skip=0):
     with open(filename, 'r') as f:
         i = 0
         rows = []
