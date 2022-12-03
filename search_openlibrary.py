@@ -9,7 +9,7 @@ OL_BASE_URL = 'https://openlibrary.org'
 def search_openlibrary(query):
     request_params = {
         'q': query,
-        'has_fulltext': True,
+        'has_fulltext': 'true',
         'mode': 'ebooks',
         'limit': 100
     }
